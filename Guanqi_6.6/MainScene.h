@@ -27,13 +27,14 @@ private:
 	void resurrection(float);	//复活相关
 	void MainScene::display_resurrection(float); //即刻显示复活标签
 	void MainScene::ai_soldiers_attack(float); //小兵ai
-	//改：void MainScene::onPushSceneCheckResult(float dt);
+	void MainScene::onPushSceneCheckResult(float dt);
 
 	/*
 		函数重载，试用与各种掉血，如敌我防御塔，小兵，英雄等
 		第一个参数为掉血的对象，第二个参数为掉血值（攻击力)
 	*/
-	void dropBlood(HeroSprite* hero,int attack);//英雄掉血
+	void me_dropBlood(HeroSprite* hero, int attack);//我方英雄掉血
+	void ai_dropBlood(HeroSprite* hero, int attack);//敌方英雄掉血
 	void dropBlood(TowerSprite* tower,int attack);//塔掉血
 	void dropBlood(SoldierSprite* soldier,int attack);//小兵掉血
 
@@ -41,6 +42,14 @@ private:
 	cocos2d::Layer* map_layer;//地图的图层，防御塔也放在上面
 	cocos2d::Label* time_label;//显示游戏的时间
 	cocos2d::Label* time_resurrection_label;//显示英雄死亡的复活时间
+	//////
+	cocos2d::Label* experience_label;//显示经验
+	cocos2d::Label* level_label;//显示等级
+	cocos2d::Label* money_label;//显示金币
+	void MainScene::level(float);
+	void MainScene::experience(float);
+	void MainScene::money(float);
+	////////////
 	cocos2d::Sprite* win;//胜利场景
 	cocos2d::Sprite* fail;//失败场景
 	std::vector<TowerSprite*> towers;//防御塔
@@ -50,6 +59,10 @@ private:
 	int time_second = 0;//时间 秒
 	std::vector<SoldierSprite*>blue_soldier_vec;//蓝色兵的vec
 	std::vector<SoldierSprite*>red_soldier_vec;//红色兵的vec
+	bool hero_survive;
+	bool tower_survive_1;
+	bool tower_survive_2;
+	std::vector<int>soldier_survive;
 };
 
 #endif

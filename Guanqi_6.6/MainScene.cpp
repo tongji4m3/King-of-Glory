@@ -1,6 +1,6 @@
 #include"MainScene.h"
 #include"SimpleAudioEngine.h"
-//改：#include"CheckResult.h"
+#include"CheckResult.h"
 #include<vector>
 #include<string>
 
@@ -54,6 +54,31 @@ bool  MainScene::init()
 	this->addChild(time_label);
 	time_label->setPosition(Vec2(960, 960));
 
+	/////////////////////////
+
+	//等级设为1，经验为0,money=0
+	my_hero->hero.level = 0;
+	my_hero->hero.hero_exp = 0;
+	my_hero->hero.money = 0;
+	//显示等级
+	level_label= Label::create("LEVEL: 1", "Arial", 40);
+	level_label->setColor(Color3B(50, 200, 200));
+	this->addChild(level_label);
+	level_label->setPosition(Vec2(120, 960));
+
+	//显示经验
+	experience_label = Label::create("EXP: 0 / 100", "Arial", 40);
+	experience_label->setColor(Color3B(50, 200, 200));
+	this->addChild(experience_label);
+	experience_label->setPosition(Vec2(120, 880));
+
+	//显示金币
+	money_label = Label::create("MONEY: 0", "Arial", 40);
+	money_label->setColor(Color3B(50, 100, 200));
+	this->addChild(money_label);
+	money_label->setPosition(Vec2(120, 800));
+	/////////////////////////
+
 	//英雄死亡时的复活时间 死亡时才可见
 	int time_resurrection = 10;
 	std::string resurrection("Resurrection time: ");
@@ -104,7 +129,7 @@ bool  MainScene::init()
 		//因为点一下触发一次，所以攻击速度可以无穷大..
 
 		//添加判断：如果目标移动位置有敌人则不能移动
-		//改：bool MyHero_CanMove = 1;
+		bool MyHero_CanMove = 1;
 		if (my_hero->hero.survival)
 		{
 			//对于所有红色兵
@@ -125,7 +150,7 @@ bool  MainScene::init()
 					hero_attack_effect->setPosition(my_hero->getPosition() - map_layer_position);
 					auto call = CallFuncN::create([=](Node * t)
 						{
-							dropBlood(i, my_hero->hero.attack);
+							dropBlood(i, my_hero->hero.attack[my_hero->hero.level]);
 						});
 					//飞行效果
 					//动作序列(Sequence) 是一种封装多个动作的对象，当这个对象执行时被封装的动作会顺序执行
@@ -135,10 +160,10 @@ bool  MainScene::init()
 							call, FadeOut::create(0.1), 0));
 					return false;
 				}
-				/*改：
+			
 				if (i->boundingBox().containsPoint(touch_position) && i->getPosition().distance(my_hero_position - map_layer_position)> my_hero->hero.attack_distance)
 					MyHero_CanMove = 0;
-					*/
+					
 			}
 
 			//攻击敌方英雄
@@ -150,17 +175,17 @@ bool  MainScene::init()
 				hero_attack_effect->setPosition(my_hero->getPosition() - map_layer_position);
 				auto call = CallFuncN::create([=](Node * t)
 					{
-						dropBlood(ai_hero, my_hero->hero.attack);
+						ai_dropBlood(ai_hero, my_hero->hero.attack[my_hero->hero.level]);
 					});
 				hero_attack_effect->runAction(
 					Sequence::create(MoveTo::create((my_hero_position - map_layer_position).distance(ai_hero->getPosition()) / 200, ai_hero->getPosition()),
 						call, FadeOut::create(0.1), 0));
 				return false;
 			}
-			/*改：
+		
 			if(ai_hero->boundingBox().containsPoint(touch_position) && ai_hero->getPosition().distance(my_hero_position - map_layer_position)> my_hero->hero.attack_distance)
 				MyHero_CanMove = 0;
-				*/
+				
 			//攻击塔
 			for (int i = 2; i <= 3; ++i)
 			{
@@ -172,17 +197,17 @@ bool  MainScene::init()
 					hero_attack_effect->setPosition(my_hero->getPosition() - map_layer_position);
 					auto call = CallFuncN::create([=](Node * t)
 						{
-							dropBlood(towers[i], my_hero->hero.attack);
+							dropBlood(towers[i], my_hero->hero.attack[my_hero->hero.level]);
 						});
 					hero_attack_effect->runAction(
 						Sequence::create(MoveTo::create((my_hero_position - map_layer_position).distance(towers[i]->getPosition()) / 200, towers[i]->getPosition()),
 							call, FadeOut::create(0.1), 0));
 					return false;
 				}
-				/*改：
+				
 				if (towers[i]->boundingBox().containsPoint(touch_position) && towers[i]->getPosition().distance(my_hero_position - map_layer_position) > my_hero->hero.attack_distance)
 				MyHero_CanMove = 0;
-				*/
+				
 			}
 		}
 		/*
@@ -196,13 +221,13 @@ bool  MainScene::init()
 		*/
 		int speed = 800;
 
-		/*改：
+		
 		if (MyHero_CanMove) 
 		{
 		my_hero->runAction(MoveBy::create(touch_position_change.distance(e->getCurrentTarget()->getPosition()) / speed, Vec2(0, touch_position_change.y - my_hero_position_change.y)));
 		map_layer->runAction(MoveBy::create(touch_position_change.distance(e->getCurrentTarget()->getPosition()) / speed, Vec2((my_hero_position_change.x - touch_position_change.x), 0)));
 		}
-		*/
+		
 		return false;
 	};
 	map_layer->getEventDispatcher()->addEventListenerWithSceneGraphPriority(m, my_hero);
@@ -216,9 +241,11 @@ bool  MainScene::init()
 	schedule(schedule_selector(MainScene::resurrection), 1.0f);
 	schedule(schedule_selector(MainScene::display_resurrection));
 	schedule(schedule_selector(MainScene::ai_soldiers_attack));//攻击速度写死了
-															   
+	schedule(schedule_selector(MainScene::level));
+	schedule(schedule_selector(MainScene::experience));
+	schedule(schedule_selector(MainScene::money));
 	//战斗结束后返回战绩界面
-	//改：schedule(schedule_selector(MainScene::onPushSceneCheckResult), 5.0f);
+	schedule(schedule_selector(MainScene::onPushSceneCheckResult), 5.0f);
 	return true;
 }
 
@@ -302,7 +329,7 @@ void MainScene::ai_soldiers_attack(float)
 					tower_attack_effect->setPosition((*blue_iter)->getPosition());
 					auto call = CallFuncN::create([=](Node* t)
 						{
-							dropBlood(ai_hero, (*blue_iter)->soldier.attack);
+							ai_dropBlood(ai_hero, (*blue_iter)->soldier.attack);
 						});
 					tower_attack_effect->runAction(Sequence::create(MoveTo::create(1.2f, ai_hero->getPosition()), call, FadeOut::create(0.1), 0));
 					(*blue_iter)->soldier.attack_speed = 0;
@@ -396,7 +423,7 @@ void MainScene::ai_soldiers_attack(float)
 				tower_attack_effect->setPosition((*red_iter)->getPosition());
 				auto call = CallFuncN::create([=](Node* t)
 					{
-						dropBlood(my_hero, (*red_iter)->soldier.attack);
+						me_dropBlood(my_hero, (*red_iter)->soldier.attack);
 					});
 				tower_attack_effect->runAction(Sequence::create(MoveTo::create(1.2f, my_hero->getPosition() - map_layer->getPosition()), call, FadeOut::create(0.1), 0));
 				(*red_iter)->soldier.attack_speed = 0;
@@ -436,7 +463,7 @@ void MainScene::resurrection(float)
 	{
 		map_layer->setPosition(Vec2(0, 0));
 		my_hero->setVisible(true);
-		my_hero->hero.HP = 500;
+		my_hero->hero.HP[my_hero->hero.level] = 500+100* my_hero->hero.level;
 		my_hero->blood->setScaleX(0.5);
 		my_hero->hero.survival = true;
 		my_hero->setPosition(Vec2(960, 540));
@@ -454,7 +481,7 @@ void MainScene::resurrection(float)
 	{
 		ai_hero->setVisible(true);
 		ai_hero->hero.survival = true;
-		ai_hero->hero.HP = 500;
+		ai_hero->hero.HP[0]= 500;
 		ai_hero->blood->setScaleX(0.5);
 		ai_hero->setPosition(Vec2(6000, 700));
 		ai_hero->hero.resurrection_time = 10;
@@ -500,7 +527,7 @@ void MainScene::tower_attack(float)
 			tower_attack_effect->setPosition(towers[0]->getPosition());
 			auto call = CallFuncN::create([=](Node* t)
 				{
-					dropBlood(ai_hero, towers[0]->tower.attack);
+					ai_dropBlood(ai_hero, towers[0]->tower.attack);
 				});
 			tower_attack_effect->runAction(Sequence::create(MoveTo::create(1.2f, ai_hero->getPosition()), call, FadeOut::create(0.1), 0));
 		}
@@ -539,7 +566,7 @@ void MainScene::tower_attack(float)
 			tower_attack_effect->setPosition(towers[1]->getPosition());
 			auto call = CallFuncN::create([=](Node* t)
 				{
-					dropBlood(ai_hero, towers[1]->tower.attack);
+					ai_dropBlood(ai_hero, towers[1]->tower.attack);
 				});
 			tower_attack_effect->runAction(Sequence::create(MoveTo::create(1.2f, ai_hero->getPosition()), call, FadeOut::create(0.1), 0));
 		}
@@ -578,7 +605,7 @@ void MainScene::tower_attack(float)
 			tower_attack_effect->setPosition(towers[2]->getPosition());
 			auto call = CallFuncN::create([=](Node* t)
 				{
-					dropBlood(my_hero, towers[2]->tower.attack);
+					me_dropBlood(my_hero, towers[2]->tower.attack);
 				});
 			tower_attack_effect->runAction(Sequence::create(MoveTo::create(1.2f, my_hero->getPosition() - map_layer->getPosition()), call, FadeOut::create(0.1), 0));
 		}
@@ -617,7 +644,7 @@ void MainScene::tower_attack(float)
 			tower_attack_effect->setPosition(towers[3]->getPosition());
 			auto call = CallFuncN::create([=](Node* t)
 				{
-					dropBlood(my_hero, towers[3]->tower.attack);
+					me_dropBlood(my_hero, towers[3]->tower.attack);
 				});
 			tower_attack_effect->runAction(Sequence::create(MoveTo::create(1.2f, my_hero->getPosition() - map_layer->getPosition()), call, FadeOut::create(0.1), 0));
 		}
@@ -653,7 +680,7 @@ void MainScene::ai_hero_attack(float)
 			hero_attack_effect->setPosition(ai_hero->getPosition());
 			auto call = CallFuncN::create([=](Node* t)
 				{
-					dropBlood((*iter), ai_hero->hero.attack);
+					dropBlood((*iter), ai_hero->hero.attack[0]);
 				});
 			//飞行效果
 			hero_attack_effect->runAction(
@@ -675,7 +702,7 @@ void MainScene::ai_hero_attack(float)
 		hero_attack_effect->setPosition(ai_hero->getPosition());
 		auto call = CallFuncN::create([=](Node* t)
 			{
-				dropBlood(my_hero, ai_hero->hero.attack);
+				me_dropBlood(my_hero, ai_hero->hero.attack[0]);
 			});
 		//飞行效果
 		hero_attack_effect->runAction(
@@ -696,7 +723,7 @@ void MainScene::ai_hero_attack(float)
 			hero_attack_effect->setPosition(ai_hero->getPosition());
 			auto call = CallFuncN::create([=](Node* t)
 				{
-					dropBlood(towers[i], ai_hero->hero.attack);
+					dropBlood(towers[i], ai_hero->hero.attack[0]);
 				});
 			//飞行效果
 			hero_attack_effect->runAction(
@@ -787,14 +814,107 @@ void MainScene::time(float)
 	
 }
 
-//英雄掉血
-void MainScene::dropBlood(HeroSprite* hero, int attack)
-{
-	hero->hero.HP -= attack;
-	//还活着，让血条相应变化
-	if (hero->hero.HP > 0)
+////////////////////////
+//显示等级
+void MainScene::level(float) {
+	std::string level_text;
+	int level= my_hero->hero.level;
+	int level_up_exp = my_hero->hero.experience[level];
+	//经验值满时升级
+	if (my_hero->hero.hero_exp >= level_up_exp) {
+		my_hero->hero.hero_exp -= level_up_exp;
+		my_hero->hero.level++;
+		}
+	level_text += "LEVEL: ";
+	level_text += std::to_string(level + 1);
+	level_label->setString(level_text);
+}
+
+//显示经验
+void MainScene::experience(float) {
+	std::string exp_text;
+	
+	//消灭敌方英雄+80点经验，+100金币
+	if (ai_hero->hero.survival == true)
+		MainScene::hero_survive = 1;
+	if (ai_hero->hero.survival == false && MainScene::hero_survive == 1) {
+		my_hero->hero.hero_exp += 80;
+		my_hero->hero.money += 100;
+		MainScene::hero_survive = 0;
+	}
+	//消灭敌方小兵+20点经验，+30金币
+	/*for (int i = 0; i < 10; i++)
 	{
-		hero->blood->setScaleX((hero->hero.HP / 500) * 0.5);
+		if (red_soldier_vec[i])
+		{
+			if (red_soldier_vec[i]->soldier.survival == true)
+				MainScene::soldier_survive[i] = 1;
+			if (red_soldier_vec[i]->soldier.survival == false && MainScene::soldier_survive[i] == 1)
+			{
+				my_hero->hero.hero_exp += 20;
+				my_hero->hero.money += 30;
+				MainScene::soldier_survive[i] = 0;
+			}
+		}
+
+	}*/
+
+	//消灭敌方防御塔或水晶+100点经验,+120金币
+	if (towers[2]->tower.survival == true)
+		MainScene::tower_survive_1 = 1;
+	if (towers[3]->tower.survival == true)
+		MainScene::tower_survive_2 = 1;
+	if (towers[2]->tower.survival == false && MainScene::tower_survive_1 == 1) {
+		my_hero->hero.hero_exp += 100;
+		my_hero->hero.money += 120;
+		MainScene::tower_survive_1 = 0;
+	}
+	if (towers[3]->tower.survival == false && MainScene::tower_survive_2 == 1) {
+		my_hero->hero.hero_exp += 100;
+		my_hero->hero.money += 120;
+		MainScene::tower_survive_2 = 0;
+	}
+	
+	exp_text += "EXP: ";
+	exp_text += std::to_string(my_hero->hero.hero_exp);
+	exp_text += " / ";
+	exp_text += std::to_string(my_hero->hero.experience[my_hero->hero.level]);
+	experience_label->setString(exp_text);
+}
+//显示金币
+void MainScene::money(float) {
+	std::string money_text;
+	money_text += "MONEY: ";
+	money_text += std::to_string(my_hero->hero.money);
+	money_label->setString(money_text);
+
+}
+/////////////////////////
+//英雄掉血
+void MainScene::me_dropBlood(HeroSprite* hero, int attack)
+{
+	int level = my_hero->hero.level;
+	hero->hero.HP[level] -= attack;
+	//还活着，让血条相应变化
+	if (hero->hero.HP[level] > 0)
+	{
+		hero->blood->setScaleX((hero->hero.HP[level] / 500) * 0.5);
+	}
+	//死了，血条消失，图片消失，逻辑为死亡
+	else
+	{
+		hero->blood->setScaleX(0);
+		hero->setVisible(false);
+		hero->hero.survival = false;
+	}
+}
+void MainScene::ai_dropBlood(HeroSprite* hero, int attack)
+{
+	hero->hero.HP[0] -= attack;
+	//还活着，让血条相应变化
+	if (hero->hero.HP[0] > 0)
+	{
+		hero->blood->setScaleX((hero->hero.HP[0] / 500) * 0.5);
 	}
 	//死了，血条消失，图片消失，逻辑为死亡
 	else
@@ -844,13 +964,6 @@ void MainScene::dropBlood(SoldierSprite* soldier, int attack)
 //是否能够运动
 void MainScene::sport(float)
 {
-	
-	/*删掉下列语句可以解决人物走到地图上方时下不来的bug
-	//超出边界
-	if (!map->boundingBox().containsPoint(my_hero->getPosition()))
-	{
-		my_hero->stopAllActions();
-	}*/
 	//我方英雄阵亡
 	if (my_hero->hero.survival == false)
 	{
@@ -884,7 +997,6 @@ void MainScene::sport(float)
 }
 
 //转场查看战绩界面
-/*改：
 void MainScene::onPushSceneCheckResult(float dt)
 {
 	if (towers[0]->tower.survival == false || towers[3]->tower.survival == false)
@@ -892,6 +1004,6 @@ void MainScene::onPushSceneCheckResult(float dt)
 		Director::getInstance()->replaceScene(CheckResult::createScene());
 	}
 }
-*/
+
 
 

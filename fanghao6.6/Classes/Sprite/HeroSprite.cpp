@@ -56,7 +56,9 @@ HeroSprite::HeroSprite(int id)//改
 	hero.ap = get_hero_ap(id);//改
 	hero.ap_def = get_hero_ap_def(id);//改
 	hero.attack_distance = 400;
+	hero.rehp = 20;//改
 	hero.money = 10000;//改
+	hero.move_speed = 500;//改
 	hero.survival = true;
 
 	//给红蓝方不同颜色的血条

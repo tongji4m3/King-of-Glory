@@ -13,6 +13,7 @@ public:
 	int defect;//防御力     //改
 	int ap_def;//法抗       //改
 	int ap;//法强         //改
+	int rehp;//回血      //改
 	double HP;//血量
 	double FullHP;//满血量    //改
 	double MP;//蓝             //改
@@ -20,11 +21,13 @@ public:
 	int attack_distance;//攻击范围
 	bool survival;//是否存活
 	bool red;//是否是红方的
+	bool armour_effect = false ;//防御甲减速效果是否获得
 
 	bool can_move = true;//能否移动
 	double move_speed;  //移动速度
 	int attack_speed;   //攻击速度
 
+	int time = 61;        //用于持续性效果开始时间的计时      //改
 	int experience;  //经验
 	int killed;      //杀敌数
 	int be_killed;   //死亡数
@@ -32,6 +35,7 @@ public:
 	int resurrection_time=10;  //复活时间
 	std::vector<Menu*>equipments;//拥有的装备 6件装备6个对象   //改
     std::vector<Sprite*> equipmentsImages;//拥有的装备购买后的精灵图像 //6件装备共需12个对象    //改
+	std::vector<int> equipmentsImages_2;//第商店装备栏显示的装备是否为大剑   //6个对象  //改
 };
 
 #endif

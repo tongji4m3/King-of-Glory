@@ -30,6 +30,7 @@ SoldierSprite::SoldierSprite(int id,int time_minute)//改
 	soldier.HP = get_soldier_hp(id,time_minute);//改
 	soldier.defect = get_soldier_def(id, time_minute);//改
 	soldier.attack_distance = 100;
+	soldier.move_speed = 300;
 	soldier.survival = true;
 
 	//给红蓝方不同颜色的血条

@@ -13,6 +13,7 @@ public:
 	bool can_move = true;//能否移动
 	double move_speed;  //移动速度
 	int attack_speed=0;   //攻击速度
+	int time = 61;        //用于持续性效果开始时间的计时      //改
 };
 
 #endif
